@@ -15,10 +15,10 @@ options:
   -l LIMIT, --limit LIMIT
                         Number of publications to show (<=100). Default: 10
   -o OFFSET, --offset OFFSET
-                        Show publications starting from given ID. Default: 0
+                        Show publications starting from the given ID. Default: 0
   -f FILTER, --filter FILTER
-                        Filter out publications that include keyword in the title
+                        Filter out publications that include at least one of these keywords in the title
   -i INCLUDE, --include INCLUDE
-                        Keep only the publications that include keywords in the title or abstract
+                        Keep only the publications that include at least one of the keywords in the title or abstract
   --save-csv            Save output in a CSV file
 ```
