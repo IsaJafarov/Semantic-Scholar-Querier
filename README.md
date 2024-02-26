@@ -21,4 +21,6 @@ options:
   -i INCLUDE, --include INCLUDE
                         Keep only the publications that include at least one of the keywords in the title or abstract
   --save-csv            Save output in a CSV file
+
+Sample command: python3 semantic_scholar_survey.py -q "game" -l 100 -o 0 -v "IEEE Conference on Computer Communications" -i "security" -i "online OR network" -f "smart grid"
 ```
