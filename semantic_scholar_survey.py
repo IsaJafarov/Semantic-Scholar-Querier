@@ -13,25 +13,41 @@ def parse_input():
     parser.add_argument("-q", "--query",help="Search keywords")
     parser.add_argument("-v", "--venue",help="Venue name ('j acm', 'icnc', 'ace', 'nossdav', 'cig', 'infocom'...)")
     parser.add_argument("-l", "--limit", type=int, default=10, help="Number of publications to show (<=100). Default: 10")
-    parser.add_argument("-o", "--offset", type=int, default=0, help="Show publications starting from given ID. Default: 0")
-    parser.add_argument("-f", "--filter", action='append', help="Filter out publications that include keyword in the title")
-    parser.add_argument("-i", "--include", action='append', help="Keep only the publications that include keywords in the title or abstract")
+    parser.add_argument("-o", "--offset", type=int, default=0, help="Show publications starting from the given ID. Default: 0")
+    parser.add_argument("-f", "--filter", action='append', help="Filter out publications that include at least one of these keywords in the title")
+    parser.add_argument("-i", "--include", action='append', help="Keep only the publications that include at least one of the keywords in the title or abstract")
     parser.add_argument("--save-csv", action="store_true", help="Save output in a CSV file")
     args = parser.parse_args()
     #print(args)
+    #sys.exit()
     return args.query, args.venue, args.limit, args.offset, args.filter, args.include, args.save_csv
 
-def contains_filtered_keyword(filters, title):
-    for f in filters:
-        if f.lower() in title.lower():
+
+def containes_keyword(keyword, title, abstract):
+    # Input keyword samples:
+    # "cheat OR attack"
+    # "online OR multiplayer OR Network"
+    # "detect OR prevent"
+    # "game theory"
+    
+    for i in keyword.split(" OR "):
+        if i.lower() in title.lower() or i.lower() in abstract.lower():
+            #print("Contains "+i)
             return True
+    #print("Doesn't contain "+keyword)
     return False
 
-def containes_necessary_words(necessary_keywords, title, abstract):
-    for nk in necessary_keywords:
-        if nk.lower() in title.lower() or nk.lower() in abstract.lower():
-            return True
-    return False
+def containes_keywords(keywords, title, abstract):
+    # Input keywords samples:
+    # ["gam", "cheat OR attack", "online OR multiplayer OR Network", "detect OR prevent"]
+    # ["game theory"]
+
+    for kw in keywords:
+        if not containes_keyword(kw, title, abstract):
+            #print("Doesn't contain "+str(kw))
+            return False
+    #print("Contains "+str(keywords))
+    return True
 
 def write_to_csv(publications_writer, publication):
     publications_writer.writerow(publication)
@@ -52,12 +68,14 @@ if venue is not None:
     params += "&venue={}".format(venue)
 
 # Beuild the headers
-API_key_header={'x-api-key': ''} # ENTER API KEY HERE (OPTIONAL)
+API_key_header={'x-api-key': 'tLDDwfKyhy9utmxB0pPJC1GZHVBAY5Q47762sENF'}
 
 # query the api
 final_url = base_url+params
 print("Final URL: "+final_url)
 req = requests.get(final_url, headers=API_key_header)
+
+#print(req.json())
 
 # you might get 'Too Many Requests' error
 if "message" in req.json().keys():
@@ -84,20 +102,29 @@ for p,i in zip(data, range(limit)):
 
     # filter out papers that don't have title or abstract
     if title is None or abstract is None:
+        print("Filtering out because title or abstract is NULL")
         continue
+
+    #print("\n{}. ".format(i+offset))
+    #print_paper(p)
+    #print("----")
 
     # filter out unwanted papers
     if filter is not None \
-        and contains_filtered_keyword(filter, title):
+        and containes_keywords(filter, title, abstract):
+        print("Filtering out because contains bad words")
         continue
     
     if include is not None \
-        and not containes_necessary_words(include, title, abstract):
+        and not containes_keywords(include, title, abstract):
+        print("Filtering out because doesn't contain good words")
         continue
-
+    print("YEEEEEEEEEEEEEEEEEEEEEEEEe")
+    
     print("\n{}. ".format(i+offset))
     print_paper(p)
-    
+
+
     # write to the CSV file
     if save_csv: write_to_csv(publications_writer, p)
 
